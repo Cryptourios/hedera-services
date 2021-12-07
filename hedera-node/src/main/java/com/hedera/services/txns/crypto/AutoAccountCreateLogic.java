@@ -125,6 +125,7 @@ public class AutoAccountCreateLogic {
 				return Pair.of(changeWithOnlyAlias.codeForInsufficientBalance(), 0L);
 			} else {
 				changeWithOnlyAlias.adjustUnits(-feeForSyntheticCreateTxn);
+				changeWithOnlyAlias.setNewBalance(changeWithOnlyAlias.units());
 			}
 			var newAccountId = ids.newAccountId(syntheticCreateTxn.getTransactionID().getAccountID());
 			accountsLedger.create(newAccountId);

@@ -113,8 +113,11 @@ public class TransferLogic {
 		}
 
 		if (autoAccountCreationFeeAccumulated != 0) {
-			changes.add(BalanceChange.hbarAdjust(
-					Id.fromGrpcAccount(dynamicProperties.fundingAccount()), autoAccountCreationFeeAccumulated));
+			var fundingAccountBalanceChange = BalanceChange.hbarAdjust(
+					Id.fromGrpcAccount(dynamicProperties.fundingAccount()), autoAccountCreationFeeAccumulated);
+			accountsLedger.validate(fundingAccountBalanceChange.accountId(),
+					scopedCheck.setBalanceChange(fundingAccountBalanceChange));
+			changes.add(fundingAccountBalanceChange);
 		}
 
 		if (validity == OK) {
