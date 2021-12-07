@@ -29,7 +29,7 @@ import com.hedera.services.files.MetadataMapFactory;
 import com.hedera.services.files.store.FcBlobsBytesStore;
 import com.hedera.services.legacy.core.jproto.JKey;
 import com.hedera.services.legacy.core.jproto.JKeyList;
-import com.hedera.services.state.AutoAccountCreationsManager;
+import com.hedera.services.ledger.accounts.AutoAccountsManager;
 import com.hedera.services.state.merkle.MerkleAccount;
 import com.hedera.services.state.merkle.MerkleToken;
 import com.hedera.services.state.merkle.MerkleTokenRelStatus;
@@ -377,10 +377,10 @@ public class StateView {
 		return Optional.of(info.build());
 	}
 
-	public Optional<CryptoGetInfoResponse.AccountInfo> infoForAccount(AccountID id) {
+	public Optional<CryptoGetInfoResponse.AccountInfo> infoForAccount(AccountID id, AutoAccountsManager autoAccounts) {
 		var account = accounts().get(
 				id.getAlias().isEmpty() ? fromAccountId(id) :
-				AutoAccountCreationsManager.getInstance().fetchEntityNumFor(id.getAlias())
+				autoAccounts.fetchEntityNumFor(id.getAlias())
 		);
 		if (account == null) {
 			return Optional.empty();

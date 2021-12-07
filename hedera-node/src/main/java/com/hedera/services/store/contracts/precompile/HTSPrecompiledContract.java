@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static com.hedera.services.exceptions.ValidationUtils.validateTrue;
+import static com.hedera.services.state.expiry.ExpiringCreations.EMPTY_MEMO;
 import static com.hedera.services.store.tokens.views.UniqTokenViewsManager.NOOP_VIEWS_MANAGER;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.FAIL_INVALID;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_SIGNATURE;
@@ -81,7 +82,7 @@ import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.INVALID_SIGNAT
 public class HTSPrecompiledContract extends AbstractPrecompiledContract {
 	private static final Logger LOG = LogManager.getLogger(HTSPrecompiledContract.class);
 
-	private static final List<FcAssessedCustomFee> NO_CUSTOM_FEES = Collections.emptyList();
+	public static final List<FcAssessedCustomFee> NO_CUSTOM_FEES = Collections.emptyList();
 
 	public static final TypedTokenStore.LegacyTreasuryAdder NOOP_TREASURY_ADDER = (aId, tId) -> {
 		/* Precompiles cannot change treasury accounts */
@@ -297,7 +298,7 @@ public class HTSPrecompiledContract extends AbstractPrecompiledContract {
 			/* --- Execute the transaction and capture its results --- */
 			final var creationTime = recordsHistorian.nextFollowingChildConsensusTime();
 			mintLogic.mint(tokenId, newMeta.size(), 0, newMeta, creationTime);
-			childRecord = creator.createSuccessfulSyntheticRecord(NO_CUSTOM_FEES, sideEffects);
+			childRecord = creator.createSuccessfulSyntheticRecord(NO_CUSTOM_FEES, sideEffects, EMPTY_MEMO);
 			result = UInt256.valueOf(ResponseCodeEnum.SUCCESS_VALUE);
 			ledgers.commit();
 		} catch (InvalidTransactionException e) {

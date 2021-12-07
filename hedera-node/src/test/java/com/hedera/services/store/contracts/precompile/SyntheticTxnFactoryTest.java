@@ -21,6 +21,8 @@ package com.hedera.services.store.contracts.precompile;
  */
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.hedera.test.factories.keys.KeyFactory;
 import com.hedera.test.utils.IdUtils;
 import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.TokenID;
@@ -28,7 +30,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static com.hedera.services.txns.crypto.AutoAccountCreateLogic.AUTO_CREATED_ACCOUNT_MEMO;
+import static com.hedera.services.txns.crypto.AutoAccountCreateLogic.THREE_MONTHS_IN_SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SyntheticTxnFactoryTest {
 	private final SyntheticTxnFactory subject = new SyntheticTxnFactory();
@@ -73,6 +79,23 @@ class SyntheticTxnFactoryTest {
 		assertEquals(
 				List.of(fungibleTransfer.senderAdjustment(), fungibleTransfer.receiverAdjustment()),
 				expFungibleTransfer.getTransfersList());
+	}
+
+	@Test
+	void createsExpectedCryptoCreate() {
+		final var balance = 10L;
+		final var alias = KeyFactory.getDefaultInstance().newEd25519();
+		final var result = subject.cryptoCreate(alias, balance);
+		final var txnBody = result.build();
+
+		assertTrue(txnBody.hasCryptoCreateAccount());
+		assertEquals(AUTO_CREATED_ACCOUNT_MEMO, txnBody.getCryptoCreateAccount().getMemo());
+		assertEquals(THREE_MONTHS_IN_SECONDS,
+				txnBody.getCryptoCreateAccount().getAutoRenewPeriod().getSeconds());
+		assertEquals(10L,
+				txnBody.getCryptoCreateAccount().getInitialBalance());
+		assertEquals(alias.toByteString(),
+				txnBody.getCryptoCreateAccount().getKey().toByteString());
 	}
 
 	private static final long serialNo = 100;

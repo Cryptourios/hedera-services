@@ -26,6 +26,7 @@ import com.hedera.services.context.init.ServicesInitFlow;
 import com.hedera.services.sigs.ExpansionHelper;
 import com.hedera.services.sigs.order.SigRequirements;
 import com.hedera.services.sigs.sourcing.PubKeyToSigBytes;
+import com.hedera.services.ledger.accounts.AutoAccountsManager;
 import com.hedera.services.state.DualStateAccessor;
 import com.hedera.services.state.StateAccessor;
 import com.hedera.services.state.forensics.HashLogger;
@@ -41,7 +42,6 @@ import com.hedera.services.state.migration.ReleaseTwentyMigration;
 import com.hedera.services.state.migration.StateChildIndices;
 import com.hedera.services.state.migration.StateVersions;
 import com.hedera.services.state.org.StateMetadata;
-import com.hedera.services.store.contracts.CodeCache;
 import com.hedera.services.txns.ProcessLogic;
 import com.hedera.services.txns.prefetch.PrefetchProcessor;
 import com.hedera.services.txns.span.ExpandHandleSpan;
@@ -80,7 +80,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.function.Consumer;
 
 import static com.hedera.services.ServicesState.CANONICAL_JDB_LOC;
 import static com.hedera.services.context.AppsManager.APPS;
@@ -155,11 +154,7 @@ class ServicesStateTest {
 	@Mock
 	private ServicesState.BinaryObjectStoreMigrator blobMigrator;
 	@Mock
-	private Consumer<Boolean> blobMigrationFlag;
-	@Mock
 	private PrefetchProcessor prefetchProcessor;
-	@Mock
-	private CodeCache codeCache;
 	@Mock
 	private MerkleMap<EntityNum, MerkleAccount> accounts;
 
@@ -167,7 +162,6 @@ class ServicesStateTest {
 	private LogCaptor logCaptor;
 	@LoggingSubject
 	private ServicesState subject = new ServicesState();
-
 
 	@AfterEach
 	void cleanup() {
@@ -605,7 +599,7 @@ class ServicesStateTest {
 	}
 
 	@Test
-	void genesisInitCreatesAnEmptyAutoAccountsMap() throws IOException {
+	void genesisInitCreatesAnEmptyAutoAccountsMap() {
 		ServicesState.setAppBuilder(() -> appBuilder);
 
 		given(appBuilder.bootstrapProps(any())).willReturn(appBuilder);
@@ -620,7 +614,6 @@ class ServicesStateTest {
 		given(platform.getSelfId()).willReturn(selfId);
 
 		// when:
-		assertEquals(null, subject.getAutoAccountsManager());
 		subject.genesisInit(platform, addressBook, dualState);
 
 		// then:
